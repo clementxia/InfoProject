@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Timeseries</title>
+
+    <link rel="stylesheet" href="resources/default.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.1.0/lodash.min.js"></script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment.min.js"></script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>  
+
+    <script src="timeseries.js"></script>
+</head>
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.bar:hover {
+  fill: orangered ;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+}
+    
+#title {
+    background-color: black;
+    color: white;
+    padding: 10px;
+}
+    
+</style>
+<body>
+    <div id = "title">
+        <h1>Email Activity Visualization</h1>
+    </div>
+    <div>
+        <h3><a href="index.html">Threads Number By Time Duration</a></h3>
+        <h3><a href="Email.html">Threads Number By Email Number</a></h3>
+        <h3><a href="People.html">Threads Number By People Involved</a></h3>
+    </div>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="aaa"></div>
+            </div>
+            <div class="col-lg-6">
+                <div class="timeseries"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function load(m) {
+        var newDate = [];
+        d3.csv("https://raw.githubusercontent.com/clementxia/InfoProject/master/data.csv", function(data) {
+            var data = data.filter(function(d){return d.timeduration == m;});
+            data.map(function(d) {
+                newDate.push({
+                    'value': new Date(d.date).valueOf()
+                });
+            });
+            
+            timeseries('timeseries', newDate, true);
+        });
+        
+    }  
+        
+    </script>
+</body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<script>
+
+var margin = {top: 30, right: 500, bottom: 30, left: 60},
+    width = 960 - margin.left - margin.right,
+    height = 330 - margin.top - margin.bottom;
+
+var x = d3.scale.ordinal()
+    .rangeRoundBands([0, width], .1);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+
+var tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .html(function(d) {
+        return "<strong>#threads:</strong> <span style='color:red'>" + d.number_of_threads + "</span>";
+    })
+
+var svg = d3.select(".aaa").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+svg.call(tip);
+
+d3.csv("https://raw.githubusercontent.com/clementxia/InfoProject/master/duration.csv", type, function(error, data) {
+    x.domain(data.map(function(d) { return d.duration; }));
+    y.domain([0, d3.max(data, function(d) { return Math.pow(d.number_of_threads, 1/3) })]);
+
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis)
+        .append("text")
+        .attr("transform", "rotate(0)")
+        .attr("x", 450)
+        .style("text-anchor", "end")
+        .text("#Duration");
+
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+        .append("text")
+        .attr("transform", "rotate(0)")
+        .attr("y", -20)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("#Threads");
+
+    svg.selectAll(".bar")
+        .data(data)
+        .enter().append("rect")
+        .attr("class", "bar")
+        .attr("x", function(d) { return x(d.duration); })
+        .attr("width", x.rangeBand())
+        .attr("y", function(d) { return y(Math.pow(d.number_of_threads, 1/3)); })
+        .attr("height", function(d) { return height - y(Math.pow(d.number_of_threads, 1/3)); })
+        .attr("fill", "teal")
+        .on('mouseover', tip.show)
+        .on('mouseout', tip.hide)
+        .on('click', function(d, i) {
+            remove_chart1();
+            var txt1 = "<div class='col-lg-6'><div class='timeseries'></div></div>";
+            $(".row").append(txt1); 
+            load(d.duration);
+        })
+}); 
+    
+    
+function remove_chart1() {
+    d3.select("body").select(".row").selectAll("div.timeseries").remove();
+}
+
+function type(d) {
+    d.number_of_threads =+ d.number_of_threads;
+    return d;
+}
+
+</script>
